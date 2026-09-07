@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Campaign card — Studio Minimal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0D0D0D;
+    --card: #161616;
+    --card-hover: #1B1B1B;
+    --ink: #F5F5F0;
+    --ink-dim: #9A9A93;
+    --accent: #C8FF4D;
+    --line: rgba(255,255,255,0.08);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    padding: 64px 32px;
+    min-height: 100vh;
+  }
+
+  .stage {
+    max-width: 1040px;
+    margin: 0 auto;
+  }
+
+  .stage-heading {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 500;
+    font-size: 15px;
+    color: var(--ink-dim);
+    margin: 0 0 32px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+
+  @media (max-width: 860px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+
+  .card:hover {
+    background: var(--card-hover);
+    border-color: rgba(255,255,255,0.14);
+  }
+
+  .card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .project {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+    color: var(--ink-dim);
+  }
+
+  .project-mark {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    background: linear-gradient(135deg, #3a3a3a, #1e1e1e);
+    flex-shrink: 0;
+  }
+
+  .status {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    padding: 3px 8px;
+    border-radius: 20px;
+    border: 1px solid var(--line);
+    color: var(--ink-dim);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--ink-dim);
+  }
+
+  .status.live { color: var(--accent); border-color: rgba(200,255,77,0.25); }
+  .status.live .status-dot { background: var(--accent); box-shadow: 0 0 0 3px rgba(200,255,77,0.15); }
+
+  .title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 19px;
+    line-height: 1.25;
+    margin: 0;
+  }
+
+  .desc {
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: var(--ink-dim);
+    margin: 0;
+  }
+
+  .meta-row {
+    display: flex;
+    justify-content: space-between;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+  }
+
+  .meta-item { display: flex; flex-direction: column; gap: 4px; }
+  .meta-label { color: var(--ink-dim); }
+  .meta-value { color: var(--ink); }
+  .meta-value.accent { color: var(--accent); }
+
+  .cta {
+    margin-top: 4px;
+    padding: 10px 14px;
+    text-align: center;
+    border-radius: 7px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 13.5px;
+    cursor: pointer;
+    border: 1px solid var(--line);
+    color: var(--ink);
+  }
+
+  .cta.primary {
+    background: var(--accent);
+    color: #0D0D0D;
+    border-color: var(--accent);
+  }
+</style>
+</head>
+<body>
+  <div class="stage">
+    <p class="stage-heading">Campaign cards — three states</p>
+    <div class="grid">
+
+      <div class="card">
+        <div class="card-top">
+          <div class="project"><span class="project-mark"></span>Kaito Labs</div>
+          <div class="status live"><span class="status-dot"></span>Live</div>
+        </div>
+        <h3 class="title">Meme contest: explain restaking in one panel</h3>
+        <p class="desc">Post an original meme on X explaining how restaking works. Best three get picked by the review desk.</p>
+        <div class="meta-row">
+          <div class="meta-item">
+            <span class="meta-label">Participants</span>
+            <span class="meta-value">214 / 500</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Reward</span>
+            <span class="meta-value accent">150 USDC</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Ends</span>
+            <span class="meta-value">4d 12h</span>
+          </div>
+        </div>
+        <div class="cta primary">Participate</div>
+      </div>
+
+      <div class="card">
+        <div class="card-top">
+          <div class="project"><span class="project-mark"></span>Nova Chain</div>
+          <div class="status"><span class="status-dot"></span>Upcoming</div>
+        </div>
+        <h3 class="title">Testnet story: post your first transaction</h3>
+        <p class="desc">Screenshot your first testnet transaction and share what you built. Opens in 2 days.</p>
+        <div class="meta-row">
+          <div class="meta-item">
+            <span class="meta-label">Slots</span>
+            <span class="meta-value">300 max</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Reward</span>
+            <span class="meta-value accent">Pool: 2,000 NOVA</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Opens</span>
+            <span class="meta-value">Sep 09</span>
+          </div>
+        </div>
+        <div class="cta">Notify me</div>
+      </div>
+
+      <div class="card">
+        <div class="card-top">
+          <div class="project"><span class="project-mark"></span>Driftly</div>
+          <div class="status"><span class="status-dot"></span>Ended</div>
+        </div>
+        <h3 class="title">Explainer video: how the router picks a path</h3>
+        <p class="desc">60–90 second walkthrough of Driftly's routing logic, posted anywhere with a public link.</p>
+        <div class="meta-row">
+          <div class="meta-item">
+            <span class="meta-label">Winners</span>
+            <span class="meta-value">3 announced</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Reward</span>
+            <span class="meta-value">75 USDC each</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Closed</span>
+            <span class="meta-value">Sep 02</span>
+          </div>
+        </div>
+        <div class="cta">View winners</div>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>
