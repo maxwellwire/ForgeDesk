@@ -1,0 +1,228 @@
+// ForgeDesk — Phase 1 schema
+// Covers: users, campaigns, tasks, participation, submissions, winners, rewards
+// Deliberately excludes: sessions/otp tables (Phase 2), notifications/audit logs (Phase 5/7)
+// so we can migrate and sanity-check this core shape before layering auth on top.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  BANNED
+}
+
+enum CampaignStatus {
+  DRAFT
+  SCHEDULED
+  LIVE
+  PAUSED
+  ENDED
+  WINNERS_SELECTED
+  COMPLETED
+  ARCHIVED
+}
+
+enum TaskType {
+  FOLLOW
+  LIKE
+  REPOST
+  POST
+  COMMENT
+  JOIN_COMMUNITY
+  REFERRAL
+  MEME
+  VIDEO
+  IMAGE
+  CUSTOM
+}
+
+enum SubmissionStatus {
+  PENDING
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  MORE_PROOF_REQUIRED
+}
+
+enum WinnerStatus {
+  SELECTED
+  ANNOUNCED
+  REWARD_PENDING
+  REWARDED
+  DISQUALIFIED
+}
+
+enum RewardStatus {
+  PENDING
+  CONTACTED
+  PAID
+  FAILED
+  CANCELLED
+}
+
+model User {
+  id            String     @id @default(cuid())
+  email         String     @unique
+  username      String     @unique
+  firstName     String
+  lastName      String
+  passwordHash  String
+  emailVerified Boolean    @default(false)
+  status        UserStatus @default(ACTIVE)
+  isAdmin       Boolean    @default(false)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  participations Participation[]
+  submissions    Submission[]
+  winners        Winner[]
+
+  @@index([email])
+  @@index([username])
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  name        String
+  logoUrl     String?
+  website     String?
+  twitter     String?
+  telegram    String?
+  discord     String?
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  campaigns Campaign[]
+}
+
+model Campaign {
+  id                String         @id @default(cuid())
+  projectId         String
+  project           Project        @relation(fields: [projectId], references: [id])
+  title             String
+  slug              String         @unique
+  description       String
+  rules             String?
+  coverImageUrl     String?
+  status            CampaignStatus @default(DRAFT)
+  participantLimit  Int?
+  winnerCount       Int
+  rewardDescription String
+  startAt           DateTime
+  endAt             DateTime
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  tasks          CampaignTask[]
+  participations Participation[]
+  submissions    Submission[]
+  winners        Winner[]
+
+  @@index([status])
+  @@index([slug])
+}
+
+model CampaignTask {
+  id           String   @id @default(cuid())
+  campaignId   String
+  campaign     Campaign @relation(fields: [campaignId], references: [id])
+  type         TaskType
+  title        String
+  description  String
+  instructions String
+  required     Boolean  @default(true)
+  sortOrder    Int      @default(0)
+
+  submissions Submission[]
+
+  @@index([campaignId])
+}
+
+// One row per user per campaign. The unique constraint below is the
+// mechanism that prevents duplicate participation — enforced at the
+// database level, not just checked in application code.
+model Participation {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id])
+  joinedAt   DateTime @default(now())
+
+  @@unique([campaignId, userId])
+  @@index([campaignId])
+  @@index([userId])
+}
+
+model Submission {
+  id         String            @id @default(cuid())
+  userId     String
+  user       User              @relation(fields: [userId], references: [id])
+  campaignId String
+  campaign   Campaign          @relation(fields: [campaignId], references: [id])
+  taskId     String
+  task       CampaignTask      @relation(fields: [taskId], references: [id])
+  status     SubmissionStatus  @default(PENDING)
+  proofUrl   String?
+  proofText  String?
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+
+  history SubmissionHistory[]
+
+  @@index([campaignId, status])
+  @@index([userId])
+}
+
+// Append-only. Every status change gets a row here instead of just
+// overwriting Submission.status, so review history is never lost.
+model SubmissionHistory {
+  id           String           @id @default(cuid())
+  submissionId String
+  submission   Submission       @relation(fields: [submissionId], references: [id])
+  status       SubmissionStatus
+  note         String?
+  actedBy      String // admin user id
+  createdAt    DateTime         @default(now())
+
+  @@index([submissionId])
+}
+
+model Winner {
+  id                String       @id @default(cuid())
+  campaignId        String
+  campaign          Campaign     @relation(fields: [campaignId], references: [id])
+  userId            String
+  user              User         @relation(fields: [userId], references: [id])
+  selectedBy        String // admin user id
+  selectedAt        DateTime     @default(now())
+  status            WinnerStatus @default(SELECTED)
+  rewardDescription String
+  adminNotes        String?
+
+  reward RewardRecord?
+
+  @@unique([campaignId, userId])
+  @@index([campaignId])
+}
+
+model RewardRecord {
+  id              String       @id @default(cuid())
+  winnerId        String       @unique
+  winner          Winner       @relation(fields: [winnerId], references: [id])
+  status          RewardStatus @default(PENDING)
+  paymentMethod   String?
+  paymentRef      String?
+  transactionHash String?
+  paidAt          DateTime?
+  adminNotes      String?
+  updatedAt       DateTime     @updatedAt
+}
