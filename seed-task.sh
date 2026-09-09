@@ -4,7 +4,7 @@ const prisma = new PrismaClient();
 async function main() {
   const task = await prisma.campaignTask.create({
     data: {
-      campaignId: 'cmtuow9oq00279j0i6ra9ntb',
+      campaignId: 'cmtuow9oq000279j0i6ra9ntb',
       type: 'POST',
       title: 'Post about the campaign',
       description: 'Share a post about this campaign',
@@ -17,3 +17,4 @@ async function main() {
 }
 main().finally(() => prisma.\$disconnect());
 "
+
