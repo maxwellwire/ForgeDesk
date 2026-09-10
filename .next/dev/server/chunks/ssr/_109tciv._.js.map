@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 4, "column": 0}, "map": {"version":3,"sources":["file:///workspaces/ForgeDesk/app/layout.tsx"],"sourcesContent":["export default function RootLayout({\n  children,\n}: {\n  children: React.ReactNode;\n}) {\n  return (\n    <html lang=\"en\">\n      <body style={{ background: \"#0D0D0D\", color: \"#F5F5F0\", margin: 0 }}>\n        {children}\n      </body>\n    </html>\n  );\n}"],"names":["RootLayout","children","lang","style","background","color","margin"],"mappings":";;;;;;AAAe,SAASA,WAAW,EACjCC,QAAQ,EAGT;IACC,qBACE,8OAAC;QAAKC,MAAK;kBACT,cAAA,8OAAC;YAAKC,OAAO;gBAAEC,YAAY;gBAAWC,OAAO;gBAAWC,QAAQ;YAAE;sBAC/DL;;;;;;;;;;;AAIT"}},
+    {"offset": {"line": 39, "column": 0}, "map": {"version":3,"sources":["file:///workspaces/ForgeDesk/node_modules/next/src/server/route-modules/app-page/vendored/rsc/react-jsx-dev-runtime.ts"],"sourcesContent":["module.exports = (\n  require('../../module.compiled') as typeof import('../../module.compiled')\n).vendored['react-rsc']!.ReactJsxDevRuntime\n"],"names":["module","exports","require","vendored","ReactJsxDevRuntime"],"mappings":"AAAAA,OAAOC,OAAO,GACZC,QAAQ,4HACRC,QAAQ,CAAC,YAAY,CAAEC,kBAAkB","ignoreList":[0]}}]
+}
