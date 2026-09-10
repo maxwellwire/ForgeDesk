@@ -26,20 +26,29 @@ export default function CampaignDetailPage() {
   const [loading, setLoading] = useState(true);
   const [actionMsg, setActionMsg] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetch(`/api/campaigns/${id}`)
-      .then((res) => res.json())
-      .then((json) => {
-        if (json.success) setCampaign(json.data);
-        setLoading(false);
-      });
+  const [openTaskId, setOpenTaskId] = useState<string | null>(null);
+  const [proofUrl, setProofUrl] = useState("");
+  const [proofText, setProofText] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [submitMsg, setSubmitMsg] = useState<Record<string, string>>({});
 
+  useEffect(() => {
+    loadCampaign();
     fetch("/api/auth/me")
       .then((res) => res.json())
       .then((json) => {
         if (json.success) setMe(json.data);
       });
   }, [id]);
+
+  function loadCampaign() {
+    fetch(`/api/campaigns/${id}`)
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success) setCampaign(json.data);
+        setLoading(false);
+      });
+  }
 
   async function handleParticipate() {
     setActionMsg(null);
@@ -53,6 +62,37 @@ export default function CampaignDetailPage() {
 
     setCampaign((prev) => (prev ? { ...prev, isParticipating: true } : prev));
     setActionMsg("You're in! You can now submit proof for each task below.");
+  }
+
+  async function handleSubmitProof(taskId: string) {
+    if (!proofUrl && !proofText) {
+      setSubmitMsg((prev) => ({ ...prev, [taskId]: "Add a URL or a short description of your proof." }));
+      return;
+    }
+
+    setSubmitting(true);
+    const res = await fetch("/api/submissions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        campaignId: id,
+        taskId,
+        proofUrl: proofUrl || undefined,
+        proofText: proofText || undefined,
+      }),
+    });
+    const json = await res.json();
+    setSubmitting(false);
+
+    if (!json.success) {
+      setSubmitMsg((prev) => ({ ...prev, [taskId]: json.error?.message || `Error: ${json.error?.code}` }));
+      return;
+    }
+
+    setSubmitMsg((prev) => ({ ...prev, [taskId]: "Submitted — pending review." }));
+    setOpenTaskId(null);
+    setProofUrl("");
+    setProofText("");
   }
 
   if (loading) {
@@ -94,6 +134,8 @@ export default function CampaignDetailPage() {
     );
   }
 
+  const canSubmit = me && me.emailVerified && campaign.isParticipating;
+
   return (
     <main style={pageStyle}>
       <div style={{ maxWidth: 640, margin: "0 auto" }}>
@@ -125,10 +167,61 @@ export default function CampaignDetailPage() {
         <h2 style={{ fontFamily: "'Space Grotesk', sans-serif", fontWeight: 600, fontSize: 17, color: "#F5F5F0", marginBottom: 16 }}>
           Tasks
         </h2>
+
+        {campaign.tasks.length === 0 && (
+          <p style={{ color: "#9A9A93", fontSize: 13.5 }}>No tasks have been added to this campaign yet.</p>
+        )}
+
         {campaign.tasks.map((task) => (
           <div key={task.id} style={{ background: "#161616", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: 16, marginBottom: 12 }}>
             <h3 style={{ color: "#F5F5F0", fontSize: 15, margin: "0 0 6px" }}>{task.title}</h3>
-            <p style={{ color: "#9A9A93", fontSize: 13, margin: 0 }}>{task.instructions}</p>
+            <p style={{ color: "#9A9A93", fontSize: 13, margin: "0 0 12px" }}>{task.instructions}</p>
+
+            {canSubmit && openTaskId !== task.id && !submitMsg[task.id] && (
+              <button
+                onClick={() => setOpenTaskId(task.id)}
+                style={{ background: "transparent", border: "1px solid rgba(200,255,77,0.3)", color: "#C8FF4D", borderRadius: 6, padding: "6px 12px", fontSize: 12.5, cursor: "pointer" }}
+              >
+                Submit proof
+              </button>
+            )}
+
+            {canSubmit && openTaskId === task.id && (
+              <div style={{ marginTop: 10 }}>
+                <input
+                  value={proofUrl}
+                  onChange={(e) => setProofUrl(e.target.value)}
+                  placeholder="Link to your post (optional)"
+                  style={miniInputStyle}
+                />
+                <textarea
+                  value={proofText}
+                  onChange={(e) => setProofText(e.target.value)}
+                  placeholder="Or describe your proof"
+                  rows={2}
+                  style={{ ...miniInputStyle, resize: "vertical", marginTop: 8 }}
+                />
+                <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                  <button
+                    onClick={() => handleSubmitProof(task.id)}
+                    disabled={submitting}
+                    style={{ background: "#C8FF4D", color: "#0D0D0D", border: "none", borderRadius: 6, padding: "7px 14px", fontSize: 12.5, fontWeight: 600, cursor: "pointer" }}
+                  >
+                    {submitting ? "Submitting…" : "Submit"}
+                  </button>
+                  <button
+                    onClick={() => setOpenTaskId(null)}
+                    style={{ background: "transparent", color: "#9A9A93", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 6, padding: "7px 14px", fontSize: 12.5, cursor: "pointer" }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {submitMsg[task.id] && (
+              <p style={{ color: "#C8FF4D", fontSize: 12.5, marginTop: 8 }}>{submitMsg[task.id]}</p>
+            )}
           </div>
         ))}
       </div>
@@ -152,4 +245,17 @@ const buttonStyle: React.CSSProperties = {
   fontWeight: 600,
   fontSize: 14,
   textDecoration: "none",
+};
+
+const miniInputStyle: React.CSSProperties = {
+  width: "100%",
+  padding: "8px 10px",
+  background: "#0D0D0D",
+  border: "1px solid rgba(255,255,255,0.1)",
+  borderRadius: 6,
+  color: "#F5F5F0",
+  fontSize: 13,
+  fontFamily: "Inter, sans-serif",
+  outline: "none",
+  boxSizing: "border-box",
 };
