@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getSessionUser } from "@/lib/session";
 
 export async function GET(
   req: Request,
@@ -23,5 +24,17 @@ export async function GET(
     );
   }
 
-  return NextResponse.json({ success: true, data: campaign });
+  const user = await getSessionUser();
+  let isParticipating = false;
+  if (user) {
+    const participation = await prisma.participation.findUnique({
+      where: { campaignId_userId: { campaignId: id, userId: user.id } },
+    });
+    isParticipating = !!participation;
+  }
+
+  return NextResponse.json({
+    success: true,
+    data: { ...campaign, isParticipating },
+  });
 }
