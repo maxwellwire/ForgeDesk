@@ -1,11 +1,15 @@
 {
+  "/_not-found/page": "app/_not-found/page.js",
   "/api/auth/login/route": "app/api/auth/login/route.js",
+  "/api/auth/logout/route": "app/api/auth/logout/route.js",
   "/api/auth/me/route": "app/api/auth/me/route.js",
   "/api/campaigns/[id]/route": "app/api/campaigns/[id]/route.js",
   "/api/campaigns/route": "app/api/campaigns/route.js",
+  "/api/submissions/route": "app/api/submissions/route.js",
   "/campaigns/[id]/page": "app/campaigns/[id]/page.js",
   "/campaigns/page": "app/campaigns/page.js",
   "/dashboard/page": "app/dashboard/page.js",
   "/login/page": "app/login/page.js",
-  "/page": "app/page.js"
+  "/page": "app/page.js",
+  "/signup/page": "app/signup/page.js"
 }
