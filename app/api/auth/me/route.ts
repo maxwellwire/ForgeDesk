@@ -18,6 +18,7 @@ export async function GET() {
       username: user.username,
       emailVerified: user.emailVerified,
       isAdmin: user.isAdmin,
+      createdAt: user.createdAt,
     },
   });
 }
