@@ -2,7 +2,8 @@
 // Adds: Session, EmailOtp, PasswordResetToken on top of the Phase 1 core model
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
 }
 
 datasource db {
