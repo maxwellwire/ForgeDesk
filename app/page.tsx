@@ -1,11 +1,11 @@
-import Nav from "@/components/Nav";
+
 
 export default function HomePage() {
   return (
     <div style={{ background: "#0D0D0D", minHeight: "100vh", fontFamily: "Inter, sans-serif" }}>
-      <Nav />
+     
 
-      <section style={{ maxWidth: 900, margin: "0 auto", padding: "72px 20px 0" }}>
+      <section style={{ maxWidth: 900, margin: "0 auto", padding:  "48px 20px 0" }}>
         <p style={eyebrow}>Proof-of-completion campaigns</p>
         <h1
           style={{
