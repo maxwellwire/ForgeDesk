@@ -1,15 +1,15 @@
 {
-  "/_not-found/page": "app/_not-found/page.js",
-  "/api/auth/login/route": "app/api/auth/login/route.js",
-  "/api/auth/logout/route": "app/api/auth/logout/route.js",
+  "/admin/page": "app/admin/page.js",
+  "/admin/projects/page": "app/admin/projects/page.js",
+  "/admin/submissions/page": "app/admin/submissions/page.js",
+  "/api/admin/campaigns/route": "app/api/admin/campaigns/route.js",
+  "/api/admin/projects/route": "app/api/admin/projects/route.js",
+  "/api/admin/submissions/route": "app/api/admin/submissions/route.js",
+  "/api/admin/winners/list/route": "app/api/admin/winners/list/route.js",
   "/api/auth/me/route": "app/api/auth/me/route.js",
-  "/api/campaigns/[id]/route": "app/api/campaigns/[id]/route.js",
   "/api/campaigns/route": "app/api/campaigns/route.js",
-  "/api/submissions/route": "app/api/submissions/route.js",
-  "/campaigns/[id]/page": "app/campaigns/[id]/page.js",
-  "/campaigns/page": "app/campaigns/page.js",
+  "/api/my-submissions/route": "app/api/my-submissions/route.js",
   "/dashboard/page": "app/dashboard/page.js",
-  "/login/page": "app/login/page.js",
   "/page": "app/page.js",
-  "/signup/page": "app/signup/page.js"
+  "/request-campaign/page": "app/request-campaign/page.js"
 }

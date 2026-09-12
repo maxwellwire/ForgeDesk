@@ -95,7 +95,8 @@ async function GET() {
             email: user.email,
             username: user.username,
             emailVerified: user.emailVerified,
-            isAdmin: user.isAdmin
+            isAdmin: user.isAdmin,
+            createdAt: user.createdAt
         }
     });
 }
