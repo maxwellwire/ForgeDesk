@@ -2,12 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { hashPassword } from "@/lib/password";
+import { issueOtp } from "@/lib/otp";
+import { sendVerificationEmail } from "@/lib/email";
 import { createSession } from "@/lib/session";
-import {
-  assertSignupEmailVerified,
-  consumeSignupOtp,
-  SignupEmailNotVerifiedError,
-} from "@/lib/signup-otp";
 
 const signupSchema = z.object({
   firstName: z.string().min(1).max(80),
@@ -39,26 +36,9 @@ export async function POST(req: NextRequest) {
   }
 
   const { firstName, lastName, username, email, password } = parsed.data;
-  const normalizedEmail = email.trim().toLowerCase();
-
-  let otpId: string;
-  try {
-    otpId = await assertSignupEmailVerified(normalizedEmail);
-  } catch (err) {
-    if (err instanceof SignupEmailNotVerifiedError) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: { code: "EMAIL_VERIFICATION_REQUIRED", message: err.message },
-        },
-        { status: 403 }
-      );
-    }
-    throw err;
-  }
 
   const existing = await prisma.user.findFirst({
-    where: { OR: [{ email: normalizedEmail }, { username }] },
+    where: { OR: [{ email }, { username }] },
   });
   if (existing) {
     return NextResponse.json(
@@ -76,17 +56,17 @@ export async function POST(req: NextRequest) {
   const passwordHash = await hashPassword(password);
 
   const user = await prisma.user.create({
-    data: {
-      firstName,
-      lastName,
-      username,
-      email: normalizedEmail,
-      passwordHash,
-      emailVerified: true,
-    },
+    data: { firstName, lastName, username, email, passwordHash },
   });
 
-  await consumeSignupOtp(otpId);
+  const code = await issueOtp(user.id, "VERIFY_EMAIL");
+
+  try {
+    await sendVerificationEmail(user.email, code);
+  } catch (err) {
+    console.error("Failed to send verification email", err);
+  }
+
   await createSession(user.id);
 
   return NextResponse.json({
