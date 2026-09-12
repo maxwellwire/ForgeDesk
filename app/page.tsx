@@ -1,5 +1,3 @@
-
-
 export default function HomePage() {
   return (
     <div style={{ background: "#0D0D0D", minHeight: "100vh", fontFamily: "Inter, sans-serif" }}>
