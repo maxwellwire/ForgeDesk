@@ -15,7 +15,7 @@ export async function GET() {
     where: { userId: user.id },
     include: {
       campaign: { select: { id: true, title: true } },
-      task: { select: { title: true } },
+      task: { select: { id: true, title: true } },
     },
     orderBy: { createdAt: "desc" },
   });
