@@ -38,11 +38,11 @@ export default function SignupPage() {
         return;
       }
 
-      router.push("/dashboard");
-    } catch {
-      setError("Something went wrong. Please try again.");
-      setLoading(false);
-    }
+      router.push("/verify-email");
+    } catch (err) {
+  setError(`Request failed: ${err instanceof Error ? err.message : "unknown error"}`);
+  setLoading(false);
+}
   }
 
   return (
