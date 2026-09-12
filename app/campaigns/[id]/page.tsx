@@ -31,6 +31,7 @@ export default function CampaignDetailPage() {
   const [proofText, setProofText] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitMsg, setSubmitMsg] = useState<Record<string, string>>({});
+  const [myTaskStatus, setMyTaskStatus] = useState<Record<string, string>>({});
 
   useEffect(() => {
     loadCampaign();
@@ -38,6 +39,24 @@ export default function CampaignDetailPage() {
       .then((res) => res.json())
       .then((json) => {
         if (json.success) setMe(json.data);
+      });
+    fetch("/api/my-submissions")
+      .then((res) => res.json())
+      .then((json) => {
+        if (!json.success) return;
+        const map: Record<string, string> = {};
+        for (const s of json.data as {
+          status: string;
+          taskId?: string;
+          campaign?: { id: string };
+          task?: { id: string };
+        }[]) {
+          if (s.campaign?.id === id) {
+            const tid = s.taskId || s.task?.id;
+            if (tid) map[tid] = s.status;
+          }
+        }
+        setMyTaskStatus(map);
       });
   }, [id]);
 
@@ -90,6 +109,7 @@ export default function CampaignDetailPage() {
     }
 
     setSubmitMsg((prev) => ({ ...prev, [taskId]: "Submitted — pending review." }));
+    setMyTaskStatus((prev) => ({ ...prev, [taskId]: "PENDING" }));
     setOpenTaskId(null);
     setProofUrl("");
     setProofText("");
@@ -177,12 +197,28 @@ export default function CampaignDetailPage() {
             <h3 style={{ color: "#F5F5F0", fontSize: 15, margin: "0 0 6px" }}>{task.title}</h3>
             <p style={{ color: "#9A9A93", fontSize: 13, margin: "0 0 12px" }}>{task.instructions}</p>
 
-            {canSubmit && openTaskId !== task.id && !submitMsg[task.id] && (
+            {myTaskStatus[task.id] && (
+              <p style={{ color: "#C8FF4D", fontSize: 12.5, marginTop: 8 }}>
+                Already submitted ({myTaskStatus[task.id].replace(/_/g, " ")})
+                {myTaskStatus[task.id] === "MORE_PROOF_REQUIRED"
+                  ? " — admin requested more proof; you may submit again."
+                  : myTaskStatus[task.id] === "REJECTED"
+                    ? " — rejected; you may submit again."
+                    : " — one submission per task."}
+              </p>
+            )}
+
+            {canSubmit &&
+              openTaskId !== task.id &&
+              !submitMsg[task.id] &&
+              (!myTaskStatus[task.id] ||
+                myTaskStatus[task.id] === "MORE_PROOF_REQUIRED" ||
+                myTaskStatus[task.id] === "REJECTED") && (
               <button
                 onClick={() => setOpenTaskId(task.id)}
                 style={{ background: "transparent", border: "1px solid rgba(200,255,77,0.3)", color: "#C8FF4D", borderRadius: 6, padding: "6px 12px", fontSize: 12.5, cursor: "pointer" }}
               >
-                Submit proof
+                {myTaskStatus[task.id] ? "Submit again" : "Submit proof"}
               </button>
             )}
 
