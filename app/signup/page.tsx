@@ -48,39 +48,28 @@ export default function SignupPage() {
   return (
     <main
       style={{
-        minHeight: "100vh",
+        minHeight: "calc(100vh - 60px)",
         display: "flex",
-        alignItems: "center",
+        alignItems: "flex-start",
         justifyContent: "center",
-        background: "#0D0D0D",
-        padding: "24px",
-        fontFamily: "Inter, sans-serif",
+        padding: "48px 24px 40px",
       }}
     >
       <div style={{ width: "100%", maxWidth: 380 }}>
-        <p
-          style={{
-            fontFamily: "'Space Grotesk', sans-serif",
-            fontWeight: 700,
-            fontSize: 20,
-            color: "#F5F5F0",
-            marginBottom: 32,
-          }}
-        >
-          Forge<span style={{ color: "#C8FF4D" }}>Desk</span>
-        </p>
-
         <h1
           style={{
             fontFamily: "'Space Grotesk', sans-serif",
             fontWeight: 600,
             fontSize: 24,
             color: "#F5F5F0",
-            margin: "0 0 24px",
+            margin: "0 0 8px",
           }}
         >
           Create your account
         </h1>
+        <p style={{ color: "#9A9A93", fontSize: 13.5, marginBottom: 20 }}>
+          Join campaigns and submit proof for review.
+        </p>
 
         {error && (
           <p style={{ color: "#ff6b6b", fontSize: 13, marginBottom: 12 }}>{error}</p>
