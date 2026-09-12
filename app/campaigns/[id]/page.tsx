@@ -62,13 +62,7 @@ export default function CampaignDetailPage() {
   const [submitMsg, setSubmitMsg] = useState<Record<string, string>>({});
   const [myTaskStatus, setMyTaskStatus] = useState<Record<string, string>>({});
 
-  useEffect(() => {
-    loadCampaign();
-    fetch("/api/auth/me")
-      .then((res) => res.json())
-      .then((json) => {
-        if (json.success) setMe(json.data);
-      });
+  function loadMySubmissions(campaignId?: string) {
     fetch("/api/my-submissions")
       .then((res) => res.json())
       .then((json) => {
@@ -77,13 +71,29 @@ export default function CampaignDetailPage() {
         for (const s of json.data as {
           status: string;
           taskId?: string;
+          campaignId?: string;
           campaign?: { id: string };
           task?: { id: string };
         }[]) {
           const tid = s.taskId || s.task?.id;
-          if (tid) map[tid] = s.status;
+          if (!tid) continue;
+          if (campaignId) {
+            const cid = s.campaignId || s.campaign?.id;
+            if (cid && cid !== campaignId) continue;
+          }
+          map[tid] = s.status;
         }
         setMyTaskStatus(map);
+      })
+      .catch(() => {});
+  }
+
+  useEffect(() => {
+    loadCampaign();
+    fetch("/api/auth/me")
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success) setMe(json.data);
       });
   }, [id]);
 
@@ -91,7 +101,10 @@ export default function CampaignDetailPage() {
     fetch(`/api/campaigns/${id}`)
       .then((res) => res.json())
       .then((json) => {
-        if (json.success) setCampaign(json.data);
+        if (json.success) {
+          setCampaign(json.data);
+          loadMySubmissions(json.data.id);
+        }
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -149,6 +162,7 @@ export default function CampaignDetailPage() {
     setOpenTaskId(null);
     setProofUrl("");
     setProofText("");
+    loadMySubmissions(campaign.id);
   }
 
   if (loading) {
@@ -225,16 +239,23 @@ export default function CampaignDetailPage() {
     );
   }
 
-  const canSubmit =
-    me && me.emailVerified && campaign.isParticipating && campaign.status === "LIVE";
+  function canResubmit(status: string | undefined) {
+    // Locked after submit / approve. Only these allow another try.
+    if (!status) return true;
+    return status === "MORE_PROOF_REQUIRED" || status === "REJECTED";
+  }
+
+  const canSubmit = !!(
+    me &&
+    me.emailVerified &&
+    campaign.isParticipating &&
+    campaign.status === "LIVE"
+  );
 
   return (
     <main style={pageStyle}>
       <div style={{ maxWidth: 640, margin: "0 auto" }}>
-        <a
-          href="/campaigns"
-          style={{ color: "#9A9A93", fontSize: 13, textDecoration: "none" }}
-        >
+        <a href="/campaigns" style={{ color: "#9A9A93", fontSize: 13, textDecoration: "none" }}>
           ← Campaigns
         </a>
 
@@ -371,33 +392,29 @@ export default function CampaignDetailPage() {
                   : myTaskStatus[task.id] === "REJECTED"
                     ? " — you can submit again."
                     : myTaskStatus[task.id] === "APPROVED"
-                      ? " — approved."
-                      : " — one open submission per task."}
+                      ? " — approved. You cannot submit again."
+                      : " — already submitted. Wait for review."}
               </p>
             )}
 
-            {canSubmit &&
-              openTaskId !== task.id &&
-              (!myTaskStatus[task.id] ||
-                myTaskStatus[task.id] === "MORE_PROOF_REQUIRED" ||
-                myTaskStatus[task.id] === "REJECTED") && (
-                <button
-                  onClick={() => setOpenTaskId(task.id)}
-                  style={{
-                    background: "transparent",
-                    border: "1px solid rgba(200,255,77,0.35)",
-                    color: "#C8FF4D",
-                    borderRadius: 6,
-                    padding: "7px 12px",
-                    fontSize: 12.5,
-                    cursor: "pointer",
-                  }}
-                >
-                  {myTaskStatus[task.id] ? "Submit again" : "Submit proof"}
-                </button>
-              )}
+            {canSubmit && openTaskId !== task.id && canResubmit(myTaskStatus[task.id]) && (
+              <button
+                onClick={() => setOpenTaskId(task.id)}
+                style={{
+                  background: "transparent",
+                  border: "1px solid rgba(200,255,77,0.35)",
+                  color: "#C8FF4D",
+                  borderRadius: 6,
+                  padding: "7px 12px",
+                  fontSize: 12.5,
+                  cursor: "pointer",
+                }}
+              >
+                {myTaskStatus[task.id] ? "Submit again" : "Submit proof"}
+              </button>
+            )}
 
-            {canSubmit && openTaskId === task.id && (
+            {canSubmit && openTaskId === task.id && canResubmit(myTaskStatus[task.id]) && (
               <div style={{ marginTop: 10 }}>
                 <input
                   value={proofUrl}
