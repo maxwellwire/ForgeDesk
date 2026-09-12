@@ -429,3 +429,14 @@ const smallButton: React.CSSProperties = {
   fontWeight: 600,
   cursor: "pointer",
 };
+<div style={cardStyle("rgba(255,107,107,0.3)")}>
+  <p style={{ color: "#FF6B6B", fontSize: 14, margin: "0 0 4px", fontWeight: 600 }}>
+    Email verification required
+  </p>
+  <p style={{ color: "#9A9A93", fontSize: 13, margin: "0 0 10px" }}>
+    Verify your email before participating in campaigns.
+  </p>
+  <a href="/verify-email" style={{ color: "#C8FF4D", fontSize: 13, fontWeight: 600, textDecoration: "none" }}>
+    Enter verification code →
+  </a>
+</div>
