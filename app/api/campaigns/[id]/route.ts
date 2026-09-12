@@ -3,17 +3,19 @@ import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/session";
 
 export async function GET(
-  req: Request,
+  _req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
 
-  const campaign = await prisma.campaign.findUnique({
-    where: { id },
+  const campaign = await prisma.campaign.findFirst({
+    where: {
+      OR: [{ id }, { slug: id }],
+    },
     include: {
-      project: true,
+      project: { select: { id: true, name: true, website: true, twitter: true } },
       tasks: { orderBy: { sortOrder: "asc" } },
-      _count: { select: { participations: true } },
+      _count: { select: { participations: true, tasks: true } },
     },
   });
 
@@ -28,7 +30,9 @@ export async function GET(
   let isParticipating = false;
   if (user) {
     const participation = await prisma.participation.findUnique({
-      where: { campaignId_userId: { campaignId: id, userId: user.id } },
+      where: {
+        campaignId_userId: { campaignId: campaign.id, userId: user.id },
+      },
     });
     isParticipating = !!participation;
   }
