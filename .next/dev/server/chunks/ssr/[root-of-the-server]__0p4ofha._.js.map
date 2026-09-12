@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 10, "column": 0}, "map": {"version":3,"sources":["file:///workspaces/ForgeDesk/app/page.tsx"],"sourcesContent":["export default function Home() {\n  return <main style={{ padding: 40 }}>ForgeDesk — dev placeholder</main>;\n}"],"names":["Home","style","padding"],"mappings":";;;;;;AAAe,SAASA;IACtB,qBAAO,8OAAC;QAAKC,OAAO;YAAEC,SAAS;QAAG;kBAAG;;;;;;AACvC"}}]
-}
