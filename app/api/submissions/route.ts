@@ -19,8 +19,6 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Same rule as participation — enforced independently here too,
-  // since a route should never assume another route already checked.
   if (!user.emailVerified) {
     return NextResponse.json(
       { success: false, error: { code: "EMAIL_VERIFICATION_REQUIRED" } },
@@ -46,7 +44,6 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Must actually be participating in this campaign to submit proof for it.
   const participation = await prisma.participation.findUnique({
     where: { campaignId_userId: { campaignId, userId: user.id } },
   });
@@ -73,6 +70,31 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // One submission per user per task (unless rejected / more proof required)
+  const existing = await prisma.submission.findFirst({
+    where: { userId: user.id, taskId },
+    orderBy: { createdAt: "desc" },
+  });
+  if (
+    existing &&
+    existing.status !== "REJECTED" &&
+    existing.status !== "MORE_PROOF_REQUIRED"
+  ) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          code: "SUBMISSION_ALREADY_EXISTS",
+          message:
+            existing.status === "APPROVED"
+              ? "This task is already approved. You cannot submit again."
+              : "You already submitted proof for this task. Wait for review.",
+        },
+      },
+      { status: 409 }
+    );
+  }
+
   const submission = await prisma.submission.create({
     data: {
       userId: user.id,
@@ -84,7 +106,6 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  // First history entry, recording the submission itself.
   await prisma.submissionHistory.create({
     data: {
       submissionId: submission.id,
