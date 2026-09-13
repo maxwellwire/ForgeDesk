@@ -9,7 +9,7 @@ const AUTH_LIKE = new Set(["/login", "/signup", "/request-campaign", "/verify-em
 
 export default function Nav() {
   const pathname = usePathname();
-  // undefined = still loading (do not flash Log in / Sign up)
+  // undefined = still loading session (avoid flash of Log in / Sign up)
   const [me, setMe] = useState<Me | undefined>(undefined);
 
   const hideEntireNav = AUTH_LIKE.has(pathname || "");
@@ -58,7 +58,7 @@ export default function Nav() {
         style={{
           maxWidth: 900,
           margin: "0 auto",
-          padding: "16px 20px",
+          padding: "18px 20px",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
@@ -71,7 +71,7 @@ export default function Nav() {
           style={{
             fontFamily: "'Space Grotesk', sans-serif",
             fontWeight: 700,
-            fontSize: 18,
+            fontSize: 26,
             color: "#F5F5F0",
             textDecoration: "none",
           }}
