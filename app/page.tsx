@@ -7,9 +7,9 @@ export default function HomePage() {
           style={{
             fontFamily: "'Space Grotesk', sans-serif",
             fontWeight: 700,
-            fontSize: 38,
+            fontSize: 26,
             color: "#F5F5F0",
-            lineHeight: 1.2,
+            lineHeight: 1.25,
             margin: "0 0 20px",
             maxWidth: 640,
           }}
