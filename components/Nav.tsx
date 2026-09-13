@@ -1,20 +1,24 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 
 type Me = { username: string; isAdmin: boolean } | null;
 
 export default function Nav() {
+  const pathname = usePathname();
   const [me, setMe] = useState<Me>(null);
+  const isLanding = pathname === "/";
 
   useEffect(() => {
+    if (isLanding) return;
     fetch("/api/auth/me")
       .then((res) => res.json())
       .then((json) => {
         if (json.success) setMe(json.data);
       })
       .catch(() => {});
-  }, []);
+  }, [isLanding]);
 
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -53,30 +57,37 @@ export default function Nav() {
           Forge<span style={{ color: "#C8FF4D" }}>Desk</span>
         </a>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 18, fontSize: 13.5 }}>
-          <a href="/campaigns" style={linkStyle}>
-            Campaigns
-          </a>
-          {me ? (
-            <>
-              <a href="/dashboard" style={linkStyle}>
-                Dashboard
-              </a>
-              <button onClick={handleLogout} style={logoutButtonStyle}>
-                Log out
-              </button>
-            </>
-          ) : (
-            <>
-              <a href="/login" style={linkStyle}>
-                Log in
-              </a>
-              <a href="/signup" style={signupButtonStyle}>
-                Sign up
-              </a>
-            </>
-          )}
-        </div>
+        {!isLanding && (
+          <div style={{ display: "flex", alignItems: "center", gap: 18, fontSize: 13.5 }}>
+            <a href="/campaigns" style={linkStyle}>
+              Campaigns
+            </a>
+            {me ? (
+              <>
+                <a href="/dashboard" style={linkStyle}>
+                  Dashboard
+                </a>
+                {me.isAdmin && (
+                  <a href="/admin" style={{ ...linkStyle, color: "#C8FF4D" }}>
+                    Admin
+                  </a>
+                )}
+                <button onClick={handleLogout} style={logoutButtonStyle}>
+                  Log out
+                </button>
+              </>
+            ) : (
+              <>
+                <a href="/login" style={linkStyle}>
+                  Log in
+                </a>
+                <a href="/signup" style={signupButtonStyle}>
+                  Sign up
+                </a>
+              </>
+            )}
+          </div>
+        )}
       </div>
     </nav>
   );
