@@ -8,21 +8,31 @@ type Me = { username: string; isAdmin: boolean } | null;
 export default function Nav() {
   const pathname = usePathname();
   const [me, setMe] = useState<Me>(null);
-  const isLanding = pathname === "/";
+
+  // Landing + auth: don't fetch session for nav chrome
+  const hideNavChrome =
+    pathname === "/" || pathname === "/login" || pathname === "/signup";
+
+  // Auth pages: no top bar at all
+  const hideEntireNav = pathname === "/login" || pathname === "/signup";
 
   useEffect(() => {
-    if (isLanding) return;
+    if (hideNavChrome) return;
     fetch("/api/auth/me")
       .then((res) => res.json())
       .then((json) => {
         if (json.success) setMe(json.data);
       })
       .catch(() => {});
-  }, [isLanding]);
+  }, [hideNavChrome]);
 
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST" });
     window.location.href = "/";
+  }
+
+  if (hideEntireNav) {
+    return null;
   }
 
   return (
@@ -57,7 +67,7 @@ export default function Nav() {
           Forge<span style={{ color: "#C8FF4D" }}>Desk</span>
         </a>
 
-        {!isLanding && (
+        {pathname !== "/" && (
           <div style={{ display: "flex", alignItems: "center", gap: 18, fontSize: 13.5 }}>
             <a href="/campaigns" style={linkStyle}>
               Campaigns
