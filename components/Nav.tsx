@@ -5,7 +5,14 @@ import { usePathname } from "next/navigation";
 
 type Me = { username: string; isAdmin: boolean } | null;
 
-const AUTH_LIKE = new Set(["/login", "/signup", "/request-campaign", "/verify-email"]);
+const AUTH_LIKE = new Set([
+  "/login",
+  "/signup",
+  "/request-campaign",
+  "/verify-email",
+  "/forgot-password",
+  "/reset-password",
+]);
 
 export default function Nav() {
   const pathname = usePathname();
