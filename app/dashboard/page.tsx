@@ -13,6 +13,7 @@ type User = {
 type Campaign = {
   id: string;
   title: string;
+  slug?: string;
   description: string;
   status: string;
   rewardDescription: string;
@@ -78,21 +79,20 @@ export default function DashboardPage() {
   }
 
   if (!user) {
+    if (typeof window !== "undefined") {
+      window.location.href = "/login?next=/dashboard";
+    }
     return (
       <main style={pageStyle}>
-        <p style={{ color: "#F5F5F0" }}>
-          You need to{" "}
-          <a href="/login" style={{ color: "#C8FF4D" }}>
-            log in
-          </a>{" "}
-          to view your dashboard.
-        </p>
+        <p style={{ color: "#9A9A93" }}>Redirecting to log in…</p>
       </main>
     );
   }
 
   const liveCampaigns = campaigns.filter((c) => c.status === "LIVE");
-  const pastCampaigns = campaigns.filter((c) => c.status === "ENDED");
+  const pastCampaigns = campaigns.filter((c) =>
+    ["ENDED", "WINNERS_SELECTED", "COMPLETED"].includes(c.status)
+  );
 
   return (
     <div style={{ background: "#0D0D0D", minHeight: "100vh", fontFamily: "Inter, sans-serif" }}>
@@ -106,7 +106,15 @@ export default function DashboardPage() {
           alignItems: "center",
         }}
       >
-        <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700, fontSize: 20, color: "#F5F5F0", margin: 0 }}>
+        <p
+          style={{
+            fontFamily: "'Space Grotesk', sans-serif",
+            fontWeight: 700,
+            fontSize: 20,
+            color: "#F5F5F0",
+            margin: 0,
+          }}
+        >
           Forge<span style={{ color: "#C8FF4D" }}>Desk</span>
         </p>
         <button onClick={() => setProfileOpen(true)} style={profileButtonStyle}>
@@ -127,13 +135,30 @@ export default function DashboardPage() {
           Welcome, {user.username} {user.emailVerified ? "✅" : "❌"}
         </h1>
         <p style={{ color: "#9A9A93", fontSize: 12, marginBottom: 4 }}>
-          {user.emailVerified ? "✅ Email verified" : "❌ Email not verified — verify to participate"}
+          {user.emailVerified ? (
+            "✅ Email verified"
+          ) : (
+            <>
+              ❌ Email not verified —{" "}
+              <a href="/verify-email" style={{ color: "#C8FF4D" }}>
+                enter your code
+              </a>{" "}
+              to participate
+            </>
+          )}
         </p>
         <p style={{ color: "#9A9A93", fontSize: 14, marginBottom: 28 }}>
           Find a campaign. Complete the task. Get rewarded.
         </p>
 
-        <div style={{ display: "flex", gap: 8, marginBottom: 24, borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+        <div
+          style={{
+            display: "flex",
+            gap: 8,
+            marginBottom: 24,
+            borderBottom: "1px solid rgba(255,255,255,0.08)",
+          }}
+        >
           {[
             { key: "live" as Tab, label: "Live campaigns" },
             { key: "past" as Tab, label: "Past campaigns" },
@@ -162,7 +187,9 @@ export default function DashboardPage() {
         {tab === "live" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             {liveCampaigns.length === 0 && (
-              <p style={{ color: "#9A9A93", fontSize: 13.5 }}>No live campaigns right now — check back soon.</p>
+              <p style={{ color: "#9A9A93", fontSize: 13.5 }}>
+                No live campaigns right now — check back soon.
+              </p>
             )}
             {liveCampaigns.map((c) => (
               <CampaignCard key={c.id} campaign={c} />
@@ -178,20 +205,61 @@ export default function DashboardPage() {
             {pastCampaigns.map((c) => (
               <div key={c.id} style={cardWrap}>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-                  <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11.5, color: "#9A9A93" }}>{c.project.name}</span>
-                  <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, color: "#9A9A93", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 20, padding: "2px 8px" }}>
-                    ENDED
+                  <span
+                    style={{
+                      fontFamily: "'IBM Plex Mono', monospace",
+                      fontSize: 11.5,
+                      color: "#9A9A93",
+                    }}
+                  >
+                    {c.project.name}
+                  </span>
+                  <span
+                    style={{
+                      fontFamily: "'IBM Plex Mono', monospace",
+                      fontSize: 11,
+                      color: "#9A9A93",
+                      border: "1px solid rgba(255,255,255,0.1)",
+                      borderRadius: 20,
+                      padding: "2px 8px",
+                    }}
+                  >
+                    {c.status.replace(/_/g, " ")}
                   </span>
                 </div>
-                <p style={{ color: "#F5F5F0", fontSize: 15.5, fontWeight: 600, margin: "0 0 6px" }}>{c.title}</p>
+                <p style={{ color: "#F5F5F0", fontSize: 15.5, fontWeight: 600, margin: "0 0 6px" }}>
+                  {c.title}
+                </p>
                 <p style={{ color: "#9A9A93", fontSize: 12.5, margin: "0 0 12px" }}>
                   Ended {new Date(c.endAt).toLocaleDateString()}
                 </p>
-                <div style={{ display: "flex", justifyContent: "space-between", fontFamily: "'IBM Plex Mono', monospace", fontSize: 12, paddingTop: 10, borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    gap: 12,
+                    fontFamily: "'IBM Plex Mono', monospace",
+                    fontSize: 12,
+                    paddingTop: 10,
+                    borderTop: "1px solid rgba(255,255,255,0.08)",
+                  }}
+                >
                   <span style={{ color: "#C8FF4D" }}>{c.rewardDescription}</span>
-                  <a href={`/campaigns/${c.id}`} style={{ color: "#9A9A93", textDecoration: "none" }}>
-                    View details →
-                  </a>
+                  <div style={{ display: "flex", gap: 14, flexShrink: 0 }}>
+                    <a
+                      href={`/campaigns/${c.slug || c.id}/winners`}
+                      style={{ color: "#C8FF4D", textDecoration: "none", fontWeight: 500 }}
+                    >
+                      View winners →
+                    </a>
+                    <a
+                      href={`/campaigns/${c.slug || c.id}`}
+                      style={{ color: "#9A9A93", textDecoration: "none" }}
+                    >
+                      Details
+                    </a>
+                  </div>
                 </div>
               </div>
             ))}
@@ -201,19 +269,42 @@ export default function DashboardPage() {
         {tab === "submissions" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {submissions.length === 0 && (
-              <p style={{ color: "#9A9A93", fontSize: 13.5 }}>You haven't submitted proof for any tasks yet.</p>
+              <p style={{ color: "#9A9A93", fontSize: 13.5 }}>
+                You haven&apos;t submitted proof for any tasks yet.
+              </p>
             )}
             {submissions.map((s) => (
               <a
                 key={s.id}
                 href={`/campaigns/${s.campaign.id}`}
-                style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#161616", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: 14, textDecoration: "none" }}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  background: "#161616",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  borderRadius: 10,
+                  padding: 14,
+                  textDecoration: "none",
+                }}
               >
                 <div>
-                  <p style={{ color: "#F5F5F0", fontSize: 14, fontWeight: 600, margin: "0 0 4px" }}>{s.campaign.title}</p>
+                  <p style={{ color: "#F5F5F0", fontSize: 14, fontWeight: 600, margin: "0 0 4px" }}>
+                    {s.campaign.title}
+                  </p>
                   <p style={{ color: "#9A9A93", fontSize: 12, margin: 0 }}>{s.task.title}</p>
                 </div>
-                <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, color: statusColor(s.status), border: `1px solid ${statusColor(s.status)}55`, borderRadius: 20, padding: "3px 10px", whiteSpace: "nowrap" }}>
+                <span
+                  style={{
+                    fontFamily: "'IBM Plex Mono', monospace",
+                    fontSize: 11,
+                    color: statusColor(s.status),
+                    border: `1px solid ${statusColor(s.status)}55`,
+                    borderRadius: 20,
+                    padding: "3px 10px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
                   {STATUS_LABEL[s.status] || s.status}
                 </span>
               </a>
@@ -233,18 +324,54 @@ function CampaignCard({ campaign }: { campaign: Campaign }) {
   return (
     <div style={cardWrap}>
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-        <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11.5, color: "#9A9A93" }}>{campaign.project.name}</span>
-        <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, color: "#C8FF4D", border: "1px solid rgba(200,255,77,0.25)", borderRadius: 20, padding: "2px 8px" }}>
-          🟢 LIVE
+        <span
+          style={{
+            fontFamily: "'IBM Plex Mono', monospace",
+            fontSize: 11.5,
+            color: "#9A9A93",
+          }}
+        >
+          {campaign.project.name}
+        </span>
+        <span
+          style={{
+            fontFamily: "'IBM Plex Mono', monospace",
+            fontSize: 11,
+            color: "#C8FF4D",
+            border: "1px solid rgba(200,255,77,0.25)",
+            borderRadius: 20,
+            padding: "2px 8px",
+          }}
+        >
+          LIVE
         </span>
       </div>
-      <p style={{ color: "#F5F5F0", fontSize: 15.5, fontWeight: 600, margin: "0 0 6px" }}>{campaign.title}</p>
-      <p style={{ color: "#9A9A93", fontSize: 13, margin: "0 0 14px", lineHeight: 1.5 }}>{campaign.description}</p>
-      <div style={{ display: "flex", justifyContent: "space-between", fontFamily: "'IBM Plex Mono', monospace", fontSize: 12, paddingTop: 10, borderTop: "1px solid rgba(255,255,255,0.08)", marginBottom: 12 }}>
-        <span style={{ color: "#9A9A93" }}>Participants {campaign._count.participations}</span>
+      <p style={{ color: "#F5F5F0", fontSize: 15.5, fontWeight: 600, margin: "0 0 6px" }}>
+        {campaign.title}
+      </p>
+      <p style={{ color: "#9A9A93", fontSize: 13, margin: "0 0 14px", lineHeight: 1.5 }}>
+        {campaign.description}
+      </p>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          fontFamily: "'IBM Plex Mono', monospace",
+          fontSize: 12,
+          paddingTop: 10,
+          borderTop: "1px solid rgba(255,255,255,0.08)",
+          marginBottom: 12,
+        }}
+      >
+        <span style={{ color: "#9A9A93" }}>
+          Participants {campaign._count.participations}
+        </span>
         <span style={{ color: "#C8FF4D" }}>Reward {campaign.rewardDescription}</span>
       </div>
-      <a href={`/campaigns/${campaign.id}`} style={{ color: "#C8FF4D", fontSize: 13, textDecoration: "none", fontWeight: 600 }}>
+      <a
+        href={`/campaigns/${campaign.slug || campaign.id}`}
+        style={{ color: "#C8FF4D", fontSize: 13, textDecoration: "none", fontWeight: 600 }}
+      >
         View campaign →
       </a>
     </div>
@@ -296,7 +423,11 @@ function ProfilePanel({
     const json = await res.json();
     setSaving(false);
     if (!json.success) {
-      setPasswordMsg(json.error?.code === "INVALID_CURRENT_PASSWORD" ? "Current password is incorrect." : `Error: ${json.error?.code}`);
+      setPasswordMsg(
+        json.error?.code === "INVALID_CURRENT_PASSWORD"
+          ? "Current password is incorrect."
+          : `Error: ${json.error?.code}`
+      );
       return;
     }
     setPasswordMsg("Password updated.");
@@ -312,15 +443,45 @@ function ProfilePanel({
   return (
     <div
       onClick={onClose}
-      style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", display: "flex", justifyContent: "flex-end", zIndex: 50 }}
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(0,0,0,0.6)",
+        display: "flex",
+        justifyContent: "flex-end",
+        zIndex: 50,
+      }}
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        style={{ width: "100%", maxWidth: 380, background: "#0D0D0D", borderLeft: "1px solid rgba(255,255,255,0.08)", padding: 24, overflowY: "auto" }}
+        style={{
+          width: "100%",
+          maxWidth: 380,
+          background: "#0D0D0D",
+          borderLeft: "1px solid rgba(255,255,255,0.08)",
+          padding: 24,
+          overflowY: "auto",
+        }}
       >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 24,
+          }}
+        >
           <p style={{ color: "#F5F5F0", fontWeight: 600, fontSize: 16, margin: 0 }}>Profile</p>
-          <button onClick={onClose} style={{ background: "transparent", border: "none", color: "#9A9A93", fontSize: 18, cursor: "pointer" }}>
+          <button
+            onClick={onClose}
+            style={{
+              background: "transparent",
+              border: "none",
+              color: "#9A9A93",
+              fontSize: 18,
+              cursor: "pointer",
+            }}
+          >
             ✕
           </button>
         </div>
@@ -328,31 +489,58 @@ function ProfilePanel({
         <div style={{ marginBottom: 28 }}>
           <ProfileRow label="Username" value={user.username} />
           <ProfileRow label="Email" value={user.email} />
-          <ProfileRow label="Email status" value={user.emailVerified ? "✅ Verified" : "❌ Not verified"} />
+          <ProfileRow
+            label="Email status"
+            value={user.emailVerified ? "✅ Verified" : "❌ Not verified"}
+          />
           <ProfileRow label="Joined" value={new Date(user.createdAt).toLocaleDateString()} />
         </div>
 
-        <p style={{ color: "#F5F5F0", fontWeight: 600, fontSize: 13.5, marginBottom: 10 }}>Update username</p>
+        <p style={{ color: "#F5F5F0", fontWeight: 600, fontSize: 13.5, marginBottom: 10 }}>
+          Update username
+        </p>
         <input value={username} onChange={(e) => setUsername(e.target.value)} style={inputStyle} />
-        {usernameMsg && <p style={{ color: "#C8FF4D", fontSize: 12, marginTop: 6 }}>{usernameMsg}</p>}
+        {usernameMsg && (
+          <p style={{ color: "#C8FF4D", fontSize: 12, marginTop: 6 }}>{usernameMsg}</p>
+        )}
         <button onClick={handleUsernameUpdate} disabled={saving} style={{ ...smallButton, marginTop: 8 }}>
           Save username
         </button>
 
-        <p style={{ color: "#F5F5F0", fontWeight: 600, fontSize: 13.5, marginTop: 28, marginBottom: 10 }}>Change password</p>
-        <input type="password" placeholder="Current password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} style={inputStyle} />
-        <input type="password" placeholder="New password (min 8 characters)" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} style={{ ...inputStyle, marginTop: 8 }} />
-        {passwordMsg && <p style={{ color: "#C8FF4D", fontSize: 12, marginTop: 6 }}>{passwordMsg}</p>}
+        <p style={{ color: "#F5F5F0", fontWeight: 600, fontSize: 13.5, marginTop: 28, marginBottom: 10 }}>
+          Change password
+        </p>
+        <input
+          type="password"
+          placeholder="Current password"
+          value={currentPassword}
+          onChange={(e) => setCurrentPassword(e.target.value)}
+          style={inputStyle}
+        />
+        <input
+          type="password"
+          placeholder="New password (min 8 characters)"
+          value={newPassword}
+          onChange={(e) => setNewPassword(e.target.value)}
+          style={{ ...inputStyle, marginTop: 8 }}
+        />
+        {passwordMsg && (
+          <p style={{ color: "#C8FF4D", fontSize: 12, marginTop: 6 }}>{passwordMsg}</p>
+        )}
         <button onClick={handlePasswordChange} disabled={saving} style={{ ...smallButton, marginTop: 8 }}>
           Update password
         </button>
 
         <div style={{ marginTop: 28, paddingTop: 20, borderTop: "1px solid rgba(255,255,255,0.08)" }}>
-          <p style={{ color: "#6B6B66", fontSize: 12, marginBottom: 16 }}>
-            Changing your email address isn't available yet — this requires a re-verification
-            flow that hasn't been built. Contact support if you need this changed.
-          </p>
-          <button onClick={handleLogout} style={{ ...smallButton, background: "transparent", border: "1px solid rgba(255,107,107,0.3)", color: "#FF6B6B" }}>
+          <button
+            onClick={handleLogout}
+            style={{
+              ...smallButton,
+              background: "transparent",
+              border: "1px solid rgba(255,107,107,0.3)",
+              color: "#FF6B6B",
+            }}
+          >
             Sign out
           </button>
         </div>
@@ -363,7 +551,14 @@ function ProfilePanel({
 
 function ProfileRow({ label, value }: { label: string; value: string }) {
   return (
-    <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        padding: "8px 0",
+        borderBottom: "1px solid rgba(255,255,255,0.06)",
+      }}
+    >
       <span style={{ color: "#9A9A93", fontSize: 12.5 }}>{label}</span>
       <span style={{ color: "#F5F5F0", fontSize: 12.5 }}>{value}</span>
     </div>
