@@ -9,7 +9,8 @@ const AUTH_LIKE = new Set(["/login", "/signup", "/request-campaign", "/verify-em
 
 export default function Nav() {
   const pathname = usePathname();
-  const [me, setMe] = useState<Me>(null);
+  // undefined = still loading (do not flash Log in / Sign up)
+  const [me, setMe] = useState<Me | undefined>(undefined);
 
   const hideEntireNav = AUTH_LIKE.has(pathname || "");
   const isLanding = pathname === "/";
@@ -17,13 +18,25 @@ export default function Nav() {
 
   useEffect(() => {
     if (hideNavChrome) return;
+
+    let cancelled = false;
+    setMe(undefined);
+
     fetch("/api/auth/me")
       .then((res) => res.json())
       .then((json) => {
+        if (cancelled) return;
         if (json.success) setMe(json.data);
+        else setMe(null);
       })
-      .catch(() => {});
-  }, [hideNavChrome]);
+      .catch(() => {
+        if (!cancelled) setMe(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [hideNavChrome, pathname]);
 
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -67,11 +80,22 @@ export default function Nav() {
         </a>
 
         {!isLanding && (
-          <div style={{ display: "flex", alignItems: "center", gap: 18, fontSize: 13.5 }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 18,
+              fontSize: 13.5,
+              minHeight: 32,
+            }}
+          >
             <a href="/campaigns" style={linkStyle}>
               Campaigns
             </a>
-            {me ? (
+
+            {me === undefined ? (
+              <span style={{ color: "#6B6B66", fontSize: 13 }}>…</span>
+            ) : me ? (
               <>
                 <a href="/dashboard" style={linkStyle}>
                   Dashboard
