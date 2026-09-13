@@ -5,16 +5,15 @@ import { usePathname } from "next/navigation";
 
 type Me = { username: string; isAdmin: boolean } | null;
 
+const AUTH_LIKE = new Set(["/login", "/signup", "/request-campaign", "/verify-email"]);
+
 export default function Nav() {
   const pathname = usePathname();
   const [me, setMe] = useState<Me>(null);
 
-  // Landing + auth: don't fetch session for nav chrome
-  const hideNavChrome =
-    pathname === "/" || pathname === "/login" || pathname === "/signup";
-
-  // Auth pages: no top bar at all
-  const hideEntireNav = pathname === "/login" || pathname === "/signup";
+  const hideEntireNav = AUTH_LIKE.has(pathname || "");
+  const isLanding = pathname === "/";
+  const hideNavChrome = isLanding || hideEntireNav;
 
   useEffect(() => {
     if (hideNavChrome) return;
@@ -67,7 +66,7 @@ export default function Nav() {
           Forge<span style={{ color: "#C8FF4D" }}>Desk</span>
         </a>
 
-        {pathname !== "/" && (
+        {!isLanding && (
           <div style={{ display: "flex", alignItems: "center", gap: 18, fontSize: 13.5 }}>
             <a href="/campaigns" style={linkStyle}>
               Campaigns
