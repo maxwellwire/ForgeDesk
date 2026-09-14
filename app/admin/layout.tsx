@@ -69,7 +69,7 @@ export default function AdminLayout({
             flexWrap: "wrap",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap" }}>
             <a
               href="/admin"
               style={{
@@ -83,7 +83,14 @@ export default function AdminLayout({
               Forge<span style={{ color: "#C8FF4D" }}>Desk</span>{" "}
               <span style={{ color: "#9A9A93", fontWeight: 500, fontSize: 13 }}>Admin</span>
             </a>
-            <nav style={{ display: "flex", gap: 14, fontSize: 13.5 }}>
+            <nav
+              style={{
+                display: "flex",
+                gap: 14,
+                fontSize: 13.5,
+                flexWrap: "wrap",
+              }}
+            >
               <a href="/admin" style={navLink}>
                 Overview
               </a>
@@ -98,6 +105,9 @@ export default function AdminLayout({
               </a>
               <a href="/admin/projects" style={navLink}>
                 Projects
+              </a>
+              <a href="/admin/users" style={navLink}>
+                Users
               </a>
             </nav>
           </div>
