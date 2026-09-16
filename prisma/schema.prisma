@@ -1,5 +1,6 @@
 // ForgeDesk — Phase 2 schema
 // Adds: Session, EmailOtp, PasswordResetToken on top of the Phase 1 core model
+// + OAuthAccount for Google sign-in
 
 generator client {
   provider      = "prisma-client-js"
@@ -77,8 +78,9 @@ model User {
   username      String     @unique
   firstName     String
   lastName      String
-  passwordHash  String
+  passwordHash  String? // optional — Google OAuth users have no password
   emailVerified Boolean    @default(false)
+  pendingEmail  String? // optional — used for change-email flow if you use it
   status        UserStatus @default(ACTIVE)
   isAdmin       Boolean    @default(false)
   createdAt     DateTime   @default(now())
@@ -90,9 +92,22 @@ model User {
   sessions       Session[]
   emailOtps      EmailOtp[]
   resetTokens    PasswordResetToken[]
+  oauthAccounts  OAuthAccount[]
 
   @@index([email])
   @@index([username])
+}
+
+model OAuthAccount {
+  id                String   @id @default(cuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider          String // "google"
+  providerAccountId String
+  createdAt         DateTime @default(now())
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
 }
 
 // A row exists here for as long as a login session is valid.
@@ -271,22 +286,22 @@ model RewardRecord {
   adminNotes      String?
   updatedAt       DateTime     @updatedAt
 }
-model ProjectRequest {
-  id                     String   @id @default(cuid())
-  projectName            String
-  contactName            String
-  email                  String
-  website                String?
-  twitter                String?
-  telegram               String?
-  discord                String?
-  description            String
-  campaignIdea           String
-  campaignType           String?
-  estimatedParticipants  String?
-  budget                 String?
-  message                String?
-  status                 String   @default("NEW")
-  createdAt              DateTime @default(now())
-}
 
+model ProjectRequest {
+  id                    String   @id @default(cuid())
+  projectName           String
+  contactName           String
+  email                 String
+  website               String?
+  twitter               String?
+  telegram              String?
+  discord               String?
+  description           String
+  campaignIdea          String
+  campaignType          String?
+  estimatedParticipants String?
+  budget                String?
+  message               String?
+  status                String   @default("NEW")
+  createdAt             DateTime @default(now())
+}
